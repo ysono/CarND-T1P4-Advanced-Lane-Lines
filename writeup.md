@@ -27,7 +27,7 @@ The code is divided into two jupyter notebooks, both of which are printed as htm
 Other files are:
 
 - This [writeup](writeup.md).
-- Video outputs [project_video_annotated-best.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-best.mp4), [project_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-final.mp4), [challenge_video_annotated_final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/challenge_video_annotated_final.mp4), [harder_challenge_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/harder_challenge_video_annotated-final.mp4).
+- Output videos [output_videos/*](output_videos)
 - Additional test images were generated and saved in [test_images/](test_images), [challenge_video_test_images/](challenge_video_test_images), and [harder_challenge_video_test_images/](harder_challenge_video_test_images), grouped by camera calibration.
 - Images used for explanation in this writeup are under [output_images/](output_images).
 - Intermediary data saved by the notebooks are [calibration.p](calibration.p), [color_thresh_stats.p](color_thresh_stats.p), [abs_gradient_thresh_stats.p](abs_gradient_thresh_stats.p).
@@ -63,7 +63,7 @@ Results were merged in the following fashion. For a given image:
 
 Because of the final union, an attempt was made to err on the side of keeping each of the three intersection results sparse (low recall) rather than dense (potentially low precision, i.e. many false positives). Therefore, it is not an issue that one method of thresholding yields near-blank results for some images.
 
-Initially I attempted to use analysis of precision and recall to determine optimal thresholding. This required first capturing frames from the three provided videos and then manually defining desired solutions for left and right lines. In an iterative process, these frames were chosen where the most recent algorithm performed least well -- see examples in [output_images/badly_annotated/*](output_images/badly_annotated/). Precision and recall were helpful in eliminating obviously underperforming color spaces, but it did not tell the whole picture: even if two configurations yielded the same precision and recall, they could cover different pixels and thus be complementary. In the scheme of 20/80 rule of things, this was more effort spent than worthwhile.
+Initially I attempted to use precision and recall to determine optimal thresholding. This required first capturing frames from the three provided videos and then manually defining desired solutions for left and right lines. In an iterative process, these frames were chosen where the most recent algorithm performed least well -- see examples in [output_images/badly_annotated/*](output_images/badly_annotated/). It would be desirable to evaluate precision and recall of combinations of color channels; however this proved computationally too expensive. As a compromise, I evaluated precision and recall for one color channel at a time; however this is much less useful because it cannot identify the complementary nature of any pair of color channels: a channel that has low recall could still fill in false negatives of another channel. In the scheme of 20/80 rule of things, this was more effort spent than worthwhile.
 
 In the end, the initial thresholds were generally chosen based on values mentioned in the lecture material, they were manually adjusted, their effects were drawn and visually evaluated. Adjustments were generally made on one paramter (e.g. reduce lower S-channel threshold, or increase Sobel kernel size) at a time, hence effectively performing a manual stochastic descent using the cost function of my qualitative evaluation. It's quite possible I missed the global optimum in each case.
 
@@ -150,13 +150,26 @@ See contiguous sections [Draw](https://ysono.github.io/CarND-T1P4-Advanced-Lane-
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-With the notebook run as-is, the output videos are
+With the notebook run as-is, the output videos are as follows:
 
-- [project_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-final.mp4)
-- [challenge_video_annotated_final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/challenge_video_annotated_final.mp4)
-- [harder_challenge_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/harder_challenge_video_annotated-final.mp4)
+- [annotated on project_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/project_video_annotated.mp4)
+- [annotated on challenge_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/challenge_video_annotated.mp4)
+- [annotated on harder_challenge_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/harder_challenge_video_annotated.mp4)
 
-In the course of development, I was able to produce a better video for `project_video.mp4`: [project_video_annotated-best.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-best.mp4). The threshold and algorithm that yielded this video are unfortunately lost, but they were discarded due to very poor performance on the other 2 videos. This "best" video is superior in that the tip of a left-curving dotted line does not wobble.
+These videos have smoothing applied. Because the selected lines can freeze over several frames, they might appear as if hard-coded by some cheating. But smoothing is implemented as logic, as explained below.
+
+For reference, the best videos acquired prior to introducing smoothing are:
+
+- [annotated on project_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/project_video_annotated-best-without-smoothing.mp4)
+- [annotated on challenge_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/challenge_video_annotated-best-wihout-smoothing.mp4)
+- [annotated on harder_challenge_video.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/output_videos/harder_challenge_video_annotated-best-without-smoothing.mp4)
+
+The code for smoothing is in [this section](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project.ipynb.html#Video), inside `get_video_frame_pipeline`.
+
+1. We start out with no preior fit coefficients. We also start out with no prior guidance on left and right centers at the bottom. `find_masks` takes this condition, applies an initial convolution on the bottom 1/2 to find left and right centers at the bottom, finds masks at every subsequent higher layer, and fits lines.
+1. For each of left and right sides, `find_masks` returns fit coefficients, if a line is found. We'll feed this back into `find_masks` next frame so it does NOT unnecessarily use convolution to find masks. However, `find_masks` can skip convolution iff prior fit coefficients exist for both left and right; if one side is missing, convolution is still needed on the whole x range, because a line is allowed to cross over into the other side. However, once we ever find coefficients for one side, this latest found coefficients are saved in history, so this side will never have `None` coefficients again.
+1. One caveat is if the newest coefficients differ too much from the latest found coefficients by the following measure, we reject it, and we do not save them in history or feed them back to `find_masks`. `is_similar` defines the calculation, and it looks at differnce in the 2nd- and 0-th order coefficients.
+1. We used this aforementioned history for smoothing. We store 2 historical found coefficients for each of left and right. Updates happen to both sides independently, so we tolerate either side missing at different times. We apply smoothing by taking a weighted average. The most recent coefficients are weighted the highest. The weights differ linearly to one another. The weights are set up to sum to 1, so a simple dot multiplication yields the weighted mean of each coefficient (`fit_coeffs_weighted_mean = np.dot(history_weights, (history + [curr_fit_coeffs]))`).
 
 Note, the output contains undistorted frames, but the effects of camera calibration were not reversed.
 
@@ -172,6 +185,6 @@ The top tip of the line is very senstivie to warping configuration. Gyroscope sh
 
 Whereas the thresholding for gradient is based on percentage relative to maximum in the image (my code is written differently but implements the same logic as the code from lectures), I threshold absolute color values. Instead, we could use percentage relative to minimum and maximum, in both gradients and colors.
 
-I did not use time averaging, as I did for lane finding in Project 1, but I would keep a history of approx 5 frames of the 2nd-order polynomial coefficients, reject coefficients from a new frame if they differ too much, and take a weighted average (favoring more recent frames).
+Smoothing by time averaging works well as long as the frequency of frames with sufficient information is high. It worked out for `project_video.mp4` and `challenge_video.mp4` but did not quite for `harder_challenge_video.mp4`. To improve this, I would fine tune the calculation for rejection and for weighted historical mean. When saving into history, I could save a somehow averaged version of the coefficients from the current frame as well, and this averaging does not have to be the same as the averaging that yields the visible annotation.
 
 The whole operation is slow and very unlikely to be real-time. Better hardware than my laptop or aws g2.2xlarge, and better lower-level libraries are required.
