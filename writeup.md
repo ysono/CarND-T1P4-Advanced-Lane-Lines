@@ -27,7 +27,7 @@ The code is divided into two jupyter notebooks, both of which are printed as htm
 Other files are:
 
 - This [writeup](writeup.md).
-- Video outputs [project_video_annotated-best.mp4](project_video_annotated-best.mp4), [project_video_annotated-final.mp4](project_video_annotated-final.mp4), [challenge_video_annotated_final.mp4](challenge_video_annotated_final.mp4), [harder_challenge_video_annotated-final.mp4](harder_challenge_video_annotated-final.mp4).
+- Video outputs [project_video_annotated-best.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-best.mp4), [project_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-final.mp4), [challenge_video_annotated_final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/challenge_video_annotated_final.mp4), [harder_challenge_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/harder_challenge_video_annotated-final.mp4).
 - Additional test images were generated and saved in [test_images/](test_images), [challenge_video_test_images/](challenge_video_test_images), and [harder_challenge_video_test_images/](harder_challenge_video_test_images), grouped by camera calibration.
 - Images used for explanation in this writeup are under [output_images/](output_images).
 - Intermediary data saved by the notebooks are [calibration.p](calibration.p), [color_thresh_stats.p](color_thresh_stats.p), [abs_gradient_thresh_stats.p](abs_gradient_thresh_stats.p).
@@ -152,11 +152,11 @@ See contiguous sections [Draw](https://ysono.github.io/CarND-T1P4-Advanced-Lane-
 
 With the notebook run as-is, the output videos are
 
-- [project_video_annotated-final.mp4](project_video_annotated-final.mp4)
-- [challenge_video_annotated_final.mp4](challenge_video_annotated_final.mp4)
-- [harder_challenge_video_annotated-final.mp4](harder_challenge_video_annotated-final.mp4)
+- [project_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-final.mp4)
+- [challenge_video_annotated_final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/challenge_video_annotated_final.mp4)
+- [harder_challenge_video_annotated-final.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/harder_challenge_video_annotated-final.mp4)
 
-In the course of development, I was able to produce a better video for `project_video.mp4`: [project_video_annotated-best.mp4](project_video_annotated-best.mp4). The threshold and algorithm that yielded this video are unfortunately lost, but they were discarded due to very poor performance on the other 2 videos. This "best" video is superior in that the tip of a left-curving dotted line does not wobble.
+In the course of development, I was able to produce a better video for `project_video.mp4`: [project_video_annotated-best.mp4](https://ysono.github.io/CarND-T1P4-Advanced-Lane-Lines/project_video_annotated-best.mp4). The threshold and algorithm that yielded this video are unfortunately lost, but they were discarded due to very poor performance on the other 2 videos. This "best" video is superior in that the tip of a left-curving dotted line does not wobble.
 
 Note, the output contains undistorted frames, but the effects of camera calibration were not reversed.
 
